@@ -1,73 +1,36 @@
-import org.apache.tools.ant.filters.ReplaceTokens
-
 plugins {
     java
-    idea
 }
 
-group = "nexus.slime"
-version = "3.5"
+group = "dev.snowz.f3f4"
+version = "1.0.0"
 
-val targetJavaVersion = 8
-
-// Dependencies
 repositories {
     mavenCentral()
-    maven("https://hub.spigotmc.org/nexus/content/groups/public/")
-    maven("https://repo.dmulloy2.net/repository/public/")
+    maven("https://repo.papermc.io/repository/maven-public/")
+    maven("https://repo.codemc.io/repository/maven-releases/")
+    maven("https://repo.codemc.io/repository/maven-snapshots/")
 }
 
 dependencies {
-    compileOnly("org.spigotmc:spigot-api:1.9.4-R0.1-SNAPSHOT")
-    compileOnly("io.netty:netty-all:4.1.90.Final")
-
-    compileOnly("com.comphenix.protocol:ProtocolLib:5.0.0")
-    compileOnly("net.luckperms:api:5.4")
-
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.2")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.2")
+    compileOnly("io.papermc.paper:paper-api:1.21-R0.1-SNAPSHOT")
+    compileOnly("com.github.retrooper:packetevents-spigot:2.7.0")
 }
-
-// Set java version
 
 java {
-    val javaVersion = JavaVersion.toVersion(targetJavaVersion)
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
+}
 
-    sourceCompatibility = javaVersion
-    targetCompatibility = javaVersion
+tasks {
+    withType<JavaCompile> {
+        options.encoding = "UTF-8"
+    }
 
-    if (JavaVersion.current() < javaVersion) {
-        toolchain {
-            languageVersion.set(JavaLanguageVersion.of(targetJavaVersion))
+    processResources {
+        filesMatching("**/plugin.yml") {
+            expand("project" to project)
         }
-    }
-}
-
-tasks.withType(JavaCompile::class) {
-    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible) {
-        options.release.set(targetJavaVersion)
-    }
-}
-
-// Set the right test framework
-
-tasks.test {
-    useJUnitPlatform()
-}
-
-// Add version to plugin.yml
-
-tasks.processResources {
-    val props = mapOf("version" to version)
-
-    inputs.properties(props)
-    filteringCharset = "UTF-8"
-
-    filesMatching("plugin.yml") {
-        expand(props)
-    }
-
-    filesMatching("config.yml") {
-        filter(ReplaceTokens::class, mapOf("tokens" to props))
     }
 }
